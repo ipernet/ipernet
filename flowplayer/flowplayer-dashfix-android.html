@@ -39,7 +39,7 @@
 </style>
 
    <!-- Flowplayer library -->
-   <script src="flowplayer.js""></script>
+   <script src="//releases.flowplayer.org/6.0.3/flowplayer.min.js""></script>
    
     <!-- load the Flowplayer mpegdash engine, including dash.js -->
     <script src="//releases.flowplayer.org/mpegdash/flowplayer.mpegdash.min.js"></script>
@@ -48,7 +48,7 @@
 window.onload = function () {
 
   flowplayer("#dashvod", {
-    splash: true,
+    splash: false,
     embed: false, // setup would need iframe embedding
     ratio: 9/16,
     clip: {
