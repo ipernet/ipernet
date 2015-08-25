@@ -39,7 +39,7 @@
 </style>
 
    <!-- Flowplayer library -->
-   <script src="flowplayer.js"></script>
+   <script src="//releases.flowplayer.org/6.0.3/flowplayer.min.js""></script>
    
    <script src="dash.all.js"></script>
    
@@ -50,8 +50,6 @@
 window.onload = function () {
 
   flowplayer("#dashvod", {
-    splash: false,
-    embed: false, // setup would need iframe embedding
     ratio: 9/16,
     clip: {
       sources: [

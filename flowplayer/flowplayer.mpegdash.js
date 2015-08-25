@@ -30,7 +30,6 @@
                 videoTag,
                 preventDashResume = false,
                 context = new Dash.di.DashContext(),
-				isReady = false,
 
                 engine = {
                     engineName: engineImpl.engineName,
@@ -47,10 +46,9 @@
                         }
                     },
 
-                    init: function (video) {
+                    load: function (video) {
                         common.removeNode(common.findDirect("video", root)[0] || common.find(".fp-player > video", root)[0]);
                         videoTag = common.createElement("video");
-                        videoTag.autoplay = player.conf.autoplay || player.conf.splash;
 
                         bean.on(videoTag, "play", function () {
                             if (preventDashResume) {
@@ -76,19 +74,7 @@
                                 height: videoTag.videoHeight,
                                 url: videoTag.currentSrc
                             });
-                            player.trigger('dataloaded', [player, video]);
-
-                            isReady = true;
-
-                            if(videoTag.autoplay) {
-                                player.trigger('ready', [player, video]);
-                                videoTag.play();
-                            } else {
-                                root.addEventListener('click', function() {
-                                    player.trigger('ready', [player, video]);
-                                    videoTag.play();
-                                });
-                            }
+                            player.trigger('ready', [player, video]);
                         });
                         bean.on(videoTag, "seeked", function () {
                             player.trigger('seek', [player, videoTag.currentTime]);
@@ -127,6 +113,7 @@
                         common.prepend(common.find(".fp-player", root)[0], videoTag);
 
                         mediaPlayer = new MediaPlayer(context);
+                        mediaPlayer.setAutoPlay(player.conf.autoplay || player.conf.splash);
                         mediaPlayer.setScheduleWhilePaused(true);
                         mediaPlayer.startup();
                         mediaPlayer.attachView(videoTag);
@@ -135,10 +122,6 @@
                         player.on("beforeseek", function () {
                             preventDashResume = player.conf.autoplay && player.paused;
                         });
-                    },
-					
-                    load: function() {
-
                     },
 
                     resume: function () {
@@ -165,10 +148,10 @@
                     },
 
                     unload: function () {
-                        if (isReady) {
+                        if (mediaPlayer) {
                             mediaPlayer.reset();
-                            common.removeNode(videoTag);
                         }
+                        common.removeNode(videoTag);
                         player.trigger('unload', [player]);
                     }
                 };
