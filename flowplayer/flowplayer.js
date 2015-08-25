@@ -383,7 +383,7 @@ engineImpl = function flashEngine(player, root) {
             return selectedSource; // Accept the fact we don't have anything or just an MP4
          }
       },
-	  
+
       load: function(video) {
          loadVideo = video;
 
@@ -3175,6 +3175,13 @@ function initializePlayer(element, opts, callback) {
                 api.conf.autoplay = true;
               }
               engine = api.engine = engineImpl(api, root);
+			  
+              extend(video, engine.pick(video.sources.filter(function(source) { // Filter out sources explicitely configured for some other engine
+                if (!source.engine) return true;
+                return source.engine === engine.engineName;
+              })));
+
+			  if (typeof engine.init === 'function') engine.init(video);
               api.one('ready', function() {
                 engine.volume(api.volumeLevel);
               });
@@ -3414,7 +3421,7 @@ function initializePlayer(element, opts, callback) {
             // instances
             instances.push(api);
 
-            // Init Engine
+            // Init API engine
             api.init();
 			
             // start
