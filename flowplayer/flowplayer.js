@@ -383,7 +383,7 @@ engineImpl = function flashEngine(player, root) {
             return selectedSource; // Accept the fact we don't have anything or just an MP4
          }
       },
-
+	  
       load: function(video) {
          loadVideo = video;
 
@@ -3154,8 +3154,7 @@ function initializePlayer(element, opts, callback) {
          rtl: isRTL,
 
          // methods
-         load: function(video, callback) {
-
+         init: function(video) {
             if (api.error || api.loading) return;
             api.video = {};
 
@@ -3181,6 +3180,15 @@ function initializePlayer(element, opts, callback) {
               });
             }
 
+            return api;
+         },
+
+         load: function(video, callback) {			
+            video = video || conf.clip;
+
+            // resolve URL
+            video = extend({}, urlResolver.resolve(video, conf.clip.sources));
+			
             extend(video, engine.pick(video.sources.filter(function(source) { // Filter out sources explicitely configured for some other engine
               if (!source.engine) return true;
               return source.engine === engine.engineName;
@@ -3406,6 +3414,9 @@ function initializePlayer(element, opts, callback) {
             // instances
             instances.push(api);
 
+            // Init Engine
+            api.init();
+			
             // start
             if (conf.splash) api.unload(); else api.load();
 
