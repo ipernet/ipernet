@@ -150,8 +150,8 @@
                     unload: function () {
                         if (mediaPlayer) {
                             mediaPlayer.reset();
+                            common.removeNode(videoTag);
                         }
-                        common.removeNode(videoTag);
                         player.trigger('unload', [player]);
                     }
                 };
