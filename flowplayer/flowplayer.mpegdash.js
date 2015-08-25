@@ -121,6 +121,7 @@
                         videoTag.play();
                         mediaPlayer.play();
                         
+                        
                         player.on("beforeseek", function () {
                             preventDashResume = player.conf.autoplay && player.paused;
                         });
