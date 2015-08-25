@@ -30,6 +30,7 @@
                 videoTag,
                 preventDashResume = false,
                 context = new Dash.di.DashContext(),
+				isReady = false,
 
                 engine = {
                     engineName: engineImpl.engineName,
@@ -46,7 +47,7 @@
                         }
                     },
 
-                    load: function (video) {
+                    init: function (video) {
                         common.removeNode(common.findDirect("video", root)[0] || common.find(".fp-player > video", root)[0]);
                         videoTag = common.createElement("video");
 
@@ -74,7 +75,19 @@
                                 height: videoTag.videoHeight,
                                 url: videoTag.currentSrc
                             });
-                            player.trigger('ready', [player, video]);
+                            player.trigger('dataloaded', [player, video]);
+
+                            isReady = true;
+
+                            if(videoTag.autoplay) {
+                                player.trigger('ready', [player, video]);
+                                videoTag.play();
+                            } else {
+                                root.addEventListener('click', function() {
+                                    player.trigger('ready', [player, video]);
+                                    videoTag.play();
+                                });
+                            }
                         });
                         bean.on(videoTag, "seeked", function () {
                             player.trigger('seek', [player, videoTag.currentTime]);
@@ -123,6 +136,10 @@
                             preventDashResume = player.conf.autoplay && player.paused;
                         });
                     },
+					
+                    load: function() {
+
+                    },
 
                     resume: function () {
                         videoTag.play();
@@ -148,7 +165,7 @@
                     },
 
                     unload: function () {
-                        if (mediaPlayer) {
+                        if (isReady) {
                             mediaPlayer.reset();
                             common.removeNode(videoTag);
                         }
