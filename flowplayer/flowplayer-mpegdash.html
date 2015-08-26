@@ -38,12 +38,13 @@
 }
 </style>
 
-         <!-- Flowplayer library -->
-   <script src="//releases.flowplayer.org/6.0.3/flowplayer.min.js"></script>
+    <!-- Flowplayer library -->
+    <script src="//releases.flowplayer.org/6.0.3/flowplayer.min.js"></script>
    
    
-<!-- load the Flowplayer mpegdash engine, including dash.js -->
-<script src="//releases.flowplayer.org/mpegdash/flowplayer.mpegdash.min.js"></script>
+    <!-- load the Flowplayer mpegdash engine, including dash.js -->
+    <script src="dash.all.js"></script>
+    <script src="flowplayer.mpegdash.js"></script>
 
 <script>
 window.onload = function () {
@@ -55,7 +56,7 @@ window.onload = function () {
     clip: {
       sources: [
         { type: "application/dash+xml",
-          src:  "//d12zt1n3pd4xhr.cloudfront.net/fp/drive.mpd" },
+          src:  "//s3-eu-west-1.amazonaws.com/krds/as/dash/manifest.mpd" },
         { type: "application/x-mpegurl",
           src:  "//stream.flowplayer.org/drive.m3u8" },
         { type: "video/webm",

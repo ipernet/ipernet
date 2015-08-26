@@ -29,6 +29,7 @@
                 mediaPlayer,
                 videoTag,
                 preventDashResume = false,
+                autoPlay = player.conf.autoplay || player.conf.splash,
                 context = new Dash.di.DashContext(),
 
                 engine = {
@@ -113,11 +114,15 @@
                         common.prepend(common.find(".fp-player", root)[0], videoTag);
 
                         mediaPlayer = new MediaPlayer(context);
-                        mediaPlayer.setAutoPlay(player.conf.autoplay || player.conf.splash);
+                        mediaPlayer.setAutoPlay(autoPlay);
                         mediaPlayer.setScheduleWhilePaused(true);
                         mediaPlayer.startup();
                         mediaPlayer.attachView(videoTag);
                         mediaPlayer.attachSource(video.src);
+
+                        if (autoPlay) {
+                            videoTag.play();
+                        }
 
                         player.on("beforeseek", function () {
                             preventDashResume = player.conf.autoplay && player.paused;
