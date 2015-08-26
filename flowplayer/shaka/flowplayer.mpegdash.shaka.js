@@ -150,7 +150,7 @@
                         if (player.conf.autoplay) {
                           if( !flowplayer.support.zeropreload) {
                             videoTag.load(); // similar to iPad
-                          } else {
+                          } else if (player.conf.splash){
                             videoTag.play(); // Firefox
                           }
                         }
