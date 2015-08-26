@@ -29,7 +29,6 @@
                 mediaPlayer,
                 videoTag,
                 preventDashResume = false,
-                autoPlay = player.conf.autoplay || player.conf.splash,
                 context = new Dash.di.DashContext(),
 
                 engine = {
@@ -114,16 +113,22 @@
                         common.prepend(common.find(".fp-player", root)[0], videoTag);
 
                         mediaPlayer = new MediaPlayer(context);
-                        mediaPlayer.setAutoPlay(autoPlay);
+                        mediaPlayer.setAutoPlay(player.conf.autoplay);
                         mediaPlayer.setScheduleWhilePaused(true);
                         mediaPlayer.startup();
                         mediaPlayer.attachView(videoTag);
                         mediaPlayer.attachSource(video.src);
 
-                        if (!flowplayer.support.zeropreload && player.conf.autoplay) {
-                          videoTag.load(); // similar to iPad
+                        // Android requires extra load, like iPad
+                        // https://github.com/flowplayer/flowplayer/issues/910
+                        if (player.conf.autoplay) {
+                          if( !flowplayer.support.zeropreload) {
+                            videoTag.load(); // similar to iPad
+                          } else if (player.conf.splash){
+                            videoTag.play(); // Force playback for Firefox
+                          }
                         }
-                        
+
                         player.on("beforeseek", function () {
                             preventDashResume = player.conf.autoplay && player.paused;
                         });
