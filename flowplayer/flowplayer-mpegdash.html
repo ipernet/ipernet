@@ -1,0 +1,224 @@
+
+
+<!doctype html>
+
+<html>
+
+<head>
+   <meta charset="utf-8">
+
+      <title>Flowplayer · MPEG-DASH support</title>
+   
+   <!-- optimize mobile versions -->
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   
+      <!-- The "functional" skin - choose from: "functional.css", "minimalist.css", "playful.css" -->
+   <link rel="stylesheet" href="//releases.flowplayer.org/6.0.3/skin/functional.css">
+   
+   <!-- Minimal styling for this standalone page, can be removed -->
+   <link rel="stylesheet" href="http://demos.flowplayer.org/media/css/demo.css">
+   <!-- Syntax highlighting of source code, can be removed -->
+   <link rel="stylesheet" href="http://demos.flowplayer.org/media/css/pygments.css">
+   
+<style>
+.flowplayer.is-splash,
+.flowplayer .fp-message {
+  background-color: #bbb;
+}
+#dashvod {
+  background-image: url(//flowplayer.org/media/img/drive/home/drive-shoot.jpg);
+  -webkit-background-size: auto 100%;
+  -moz-background-size: auto 100%;
+  background-size: auto 100%;
+}
+@media(-webkit-min-device-pixel-ratio: 2) {
+  #dashvod {
+    background-image: url(//flowplayer.org/media/img/drive/home/drive-shoot@2x.jpg);
+  }
+}
+</style>
+
+         <!-- Flowplayer library -->
+   <script src="//releases.flowplayer.org/6.0.3/flowplayer.min.js"></script>
+   
+   
+<!-- load the Flowplayer mpegdash engine, including dash.js -->
+<script src="//releases.flowplayer.org/mpegdash/flowplayer.mpegdash.min.js"></script>
+
+<script>
+window.onload = function () {
+
+  flowplayer("#dashvod", {
+    splash: true,
+    embed: false, // setup would need iframe embedding
+    ratio: 9/16,
+    clip: {
+      sources: [
+        { type: "application/dash+xml",
+          src:  "//d12zt1n3pd4xhr.cloudfront.net/fp/drive.mpd" },
+        { type: "application/x-mpegurl",
+          src:  "//stream.flowplayer.org/drive.m3u8" },
+        { type: "video/webm",
+          src:  "//stream.flowplayer.org/drive.webm" },
+        { type: "video/mp4",
+          src:  "//stream.flowplayer.org/drive.mp4" }
+      ]
+    }
+
+  }).on("ready", function (e, api, video) {
+    // info for demo purposes
+    document.getElementById("engine").innerHTML = api.engine.engineName;
+    document.getElementById("vtype").innerHTML = video.type;
+    document.getElementById("src").innerHTML = video.src;
+
+  });
+
+
+  var livecontainer = document.getElementById("dashlive");
+  flowplayer(livecontainer, {
+    ratio: 9/16,
+    splash: true,
+    clip: {
+      live: true,
+      sources: [
+        { type: "application/dash+xml",
+          src:  "http://54.201.151.65/livesim/tfdt_32/testpic_6s/Manifest.mpd" }
+      ]
+    }
+
+  }).on("error", function (e, api, err) {
+    if (err.code == 5) {
+      // customize error as this is not a production scenario
+      livecontainer.querySelector(".fp-message h2").innerHTML =
+          "Test stream only available as MPEG-DASH";
+      livecontainer.querySelector(".fp-message p").innerHTML =
+          "Please try in a different browser";
+    }
+
+  });
+
+};</script>
+
+</head>
+
+<body>
+
+   <div id="content">
+
+      <h1>Flowplayer · MPEG-DASH support</h1>
+
+<h2 id="vod">VOD</h2>
+
+<div id="dashvod"></div>
+
+<div class="info">
+  <p>player engine: <span id="engine"></span></p>
+
+  <p>video type: <span id="vtype"></span></p>
+
+  <p>video source: <span id="src"></span></p>
+</div>
+
+<div class="doc">
+  <p><a href="http://en.wikipedia.org/wiki/Dynamic_Adaptive_Streaming_over_HTTP">MPEG-DASH</a> is an
+  experimental technique for adaptive bitrate streaming.</p>
+
+  <p>Browser implementations of MPEG-DASH rely on the
+  <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaSource">MediaSource</a>-feature of
+  browsers and the MediaSource implementation must support the AVC video and AAC audio codecs at the
+  profile and level the MPEG-DASH streams are encoded; additionally dash.js (see below) must be able
+  to handle the stream in the browser. Your browser: <span class="dash-supported"></span>.</p>
+
+  <p>To use MPEG-DASH with Flowplayer you need to use the
+  <a href="//releases.flowplayer.org/mpegdash/flowplayer.mpegdash.js">MPEG-DASH engine plugin</a>
+  which is packed with a compatibility tested version of
+  <a href="https://github.com/Dash-Industry-Forum/dash.js">dash.js</a> from the
+  <a href="http://dashif.org/">Dash Industry Forum</a>.</p>
+
+  <h3>Source picking order</h3>
+
+    <li>MPEG-DASH (dynamic resolution switching): Chrome, Internet Explorer 11, Mac OS Safari,
+    Opera</li>
+
+    <li>HLS (dynamic resolution switching): most mobile devices, desktop browsers with Flash
+    enabled</li>
+
+    <li>WEBM (fallback)</li>
+
+    <li>MP4 (fallback)</li>
+  </ol>
+
+  <p><b>Caveat:</b> In Mac OS Safari the video does not finish properly. We are investigating
+  whether this is a bug in Safari and can be worked around. For the time being you can circumvent
+  this with the following source order in the clip configuration if you have a HLS stream
+  available:</p>
+</div>
+
+<div class="codebox"><figure class="code"><div class="highlight"><pre><span class="nx">clip</span><span class="o">:</span> <span class="p">{</span><br />  <span class="nx">sources</span><span class="o">:</span> <span class="p">[</span><br />    <span class="c1">// 1. try generic HLS (Mac OS Safari)</span><br />    <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;application/x-mpegurl&quot;</span><span class="p">,</span><br />      <span class="nx">src</span><span class="o">:</span>  <span class="s2">&quot;//stream.flowplayer.org/drive.m3u8&quot;</span><span class="p">,</span><br />      <span class="nx">engine</span><span class="o">:</span> <span class="s2">&quot;html5&quot;</span> <span class="p">},</span><br />    <span class="c1">// 2. MPEG-DASH</span><br />    <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;application/dash+xml&quot;</span><span class="p">,</span><br />      <span class="nx">src</span><span class="o">:</span>  <span class="s2">&quot;//d12zt1n3pd4xhr.cloudfront.net/fp/drive.mpd&quot;</span> <span class="p">},</span><br />    <span class="c1">// 3. Flash HLS</span><br />    <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;application/x-mpegurl&quot;</span><span class="p">,</span><br />      <span class="nx">src</span><span class="o">:</span>  <span class="s2">&quot;//stream.flowplayer.org/drive.m3u8&quot;</span> <span class="p">},</span><br />    <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;video/webm&quot;</span><span class="p">,</span><br />      <span class="nx">src</span><span class="o">:</span>  <span class="s2">&quot;//stream.flowplayer.org/drive.webm&quot;</span> <span class="p">},</span><br />    <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;video/mp4&quot;</span><span class="p">,</span><br />      <span class="nx">src</span><span class="o">:</span>  <span class="s2">&quot;//stream.flowplayer.org/drive.mp4&quot;</span> <span class="p">}</span><br />  <span class="p">]</span><br /><span class="p">}</span><br /></pre></div><br /><figcaption>JavaScript</figcaption></figure></div>
+
+
+<h2 id="live">Live</h2>
+
+<div id="dashlive"></div>
+
+<p class="info">MPEG-DASH live stream simulation.</p>
+
+<h2 id="head-setup">&lt;head/&gt;</h2>
+
+<h3 id="css-setup">&lt;style&gt;</h3>
+
+<div class="codebox"><figure class="code"><div class="highlight"><pre><span class="nc">.flowplayer.is-splash</span><span class="o">,</span><br /><span class="nc">.flowplayer</span> <span class="nc">.fp-message</span> <span class="p">{</span><br />  <span class="k">background-color</span><span class="o">:</span> <span class="m">#bbb</span><span class="p">;</span><br /><span class="p">}</span><br /><span class="nf">#dashvod</span> <span class="p">{</span><br />  <span class="k">background-image</span><span class="o">:</span> <span class="sx">url(//flowplayer.org/media/img/drive/home/drive-shoot.jpg)</span><span class="p">;</span><br />  <span class="o">-</span><span class="n">webkit</span><span class="o">-</span><span class="k">background</span><span class="o">-</span><span class="k">size</span><span class="o">:</span> <span class="k">auto</span> <span class="m">100</span><span class="o">%</span><span class="p">;</span><br />  <span class="o">-</span><span class="n">moz</span><span class="o">-</span><span class="k">background</span><span class="o">-</span><span class="k">size</span><span class="o">:</span> <span class="k">auto</span> <span class="m">100</span><span class="o">%</span><span class="p">;</span><br />  <span class="k">background</span><span class="o">-</span><span class="k">size</span><span class="o">:</span> <span class="k">auto</span> <span class="m">100</span><span class="o">%</span><span class="p">;</span><br /><span class="p">}</span><br /><span class="k">@media</span><span class="o">(</span><span class="nt">-webkit-min-device-pixel-ratio</span><span class="o">:</span> <span class="nt">2</span><span class="o">)</span> <span class="p">{</span><br />  <span class="nf">#dashvod</span> <span class="p">{</span><br />    <span class="k">background-image</span><span class="o">:</span> <span class="sx">url(//flowplayer.org/media/img/drive/home/drive-shoot@2x.jpg)</span><span class="p">;</span><br />  <span class="p">}</span><br /><span class="p">}</span><br /></pre></div><br /><figcaption>CSS</figcaption></figure></div>
+
+
+<h3 id="javascript-setup">&lt;script&gt;</h3>
+
+<p class="doc">The following JavaScript assets are loaded in the
+<a href="https://flowplayer.org/docs/setup.html#prerequisites">HEAD section</a> of the page:</p>
+
+<div class="codebox"><figure class="code"><div class="highlight"><pre><span class="c">&lt;!-- Flowplayer library --&gt;</span><br /><span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;//releases.flowplayer.org/6.0.3/flowplayer.min.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span><br />&nbsp;<br /><span class="c">&lt;!-- load the Flowplayer mpegdash engine, including dash.js --&gt;</span><br /><span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;//releases.flowplayer.org/mpegdash/flowplayer.mpegdash.min.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span><br /></pre></div><br /><figcaption>HTML</figcaption></figure></div>
+
+
+<p class="doc">Then the player can be installed as usual, with an additional MPEG-DASH source:</p>
+
+<div class="codebox"><figure class="code"><div class="highlight"><pre><span class="nb">window</span><span class="p">.</span><span class="nx">onload</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span><br />&nbsp;<br />  <span class="nx">flowplayer</span><span class="p">(</span><span class="s2">&quot;#dashvod&quot;</span><span class="p">,</span> <span class="p">{</span><br />    <span class="nx">splash</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span><br />    <span class="nx">embed</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span> <span class="c1">// setup would need iframe embedding</span><br />    <span class="nx">ratio</span><span class="o">:</span> <span class="mi">9</span><span class="o">/</span><span class="mi">16</span><span class="p">,</span><br />    <span class="nx">clip</span><span class="o">:</span> <span class="p">{</span><br />      <span class="nx">sources</span><span class="o">:</span> <span class="p">[</span><br />        <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;application/dash+xml&quot;</span><span class="p">,</span><br />          <span class="nx">src</span><span class="o">:</span>  <span class="s2">&quot;//d12zt1n3pd4xhr.cloudfront.net/fp/drive.mpd&quot;</span> <span class="p">},</span><br />        <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;application/x-mpegurl&quot;</span><span class="p">,</span><br />          <span class="nx">src</span><span class="o">:</span>  <span class="s2">&quot;//stream.flowplayer.org/drive.m3u8&quot;</span> <span class="p">},</span><br />        <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;video/webm&quot;</span><span class="p">,</span><br />          <span class="nx">src</span><span class="o">:</span>  <span class="s2">&quot;//stream.flowplayer.org/drive.webm&quot;</span> <span class="p">},</span><br />        <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;video/mp4&quot;</span><span class="p">,</span><br />          <span class="nx">src</span><span class="o">:</span>  <span class="s2">&quot;//stream.flowplayer.org/drive.mp4&quot;</span> <span class="p">}</span><br />      <span class="p">]</span><br />    <span class="p">}</span><br />&nbsp;<br />  <span class="p">}).</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;ready&quot;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">e</span><span class="p">,</span> <span class="nx">api</span><span class="p">,</span> <span class="nx">video</span><span class="p">)</span> <span class="p">{</span><br />    <span class="c1">// info for demo purposes</span><br />    <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;engine&quot;</span><span class="p">).</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="nx">api</span><span class="p">.</span><span class="nx">engine</span><span class="p">.</span><span class="nx">engineName</span><span class="p">;</span><br />    <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;vtype&quot;</span><span class="p">).</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="nx">video</span><span class="p">.</span><span class="nx">type</span><span class="p">;</span><br />    <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;src&quot;</span><span class="p">).</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="nx">video</span><span class="p">.</span><span class="nx">src</span><span class="p">;</span><br />&nbsp;<br />  <span class="p">});</span><br />&nbsp;<br /><br />  <span class="kd">var</span> <span class="nx">livecontainer</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;dashlive&quot;</span><span class="p">);</span><br />  <span class="nx">flowplayer</span><span class="p">(</span><span class="nx">livecontainer</span><span class="p">,</span> <span class="p">{</span><br />    <span class="nx">ratio</span><span class="o">:</span> <span class="mi">9</span><span class="o">/</span><span class="mi">16</span><span class="p">,</span><br />    <span class="nx">splash</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span><br />    <span class="nx">clip</span><span class="o">:</span> <span class="p">{</span><br />      <span class="nx">live</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span><br />      <span class="nx">sources</span><span class="o">:</span> <span class="p">[</span><br />        <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;application/dash+xml&quot;</span><span class="p">,</span><br />          <span class="nx">src</span><span class="o">:</span>  <span class="s2">&quot;http://54.201.151.65/livesim/tfdt_32/testpic_6s/Manifest.mpd&quot;</span> <span class="p">}</span><br />      <span class="p">]</span><br />    <span class="p">}</span><br />&nbsp;<br />  <span class="p">}).</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">e</span><span class="p">,</span> <span class="nx">api</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span> <span class="p">{</span><br />    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">.</span><span class="nx">code</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span> <span class="p">{</span><br />      <span class="c1">// customize error as this is not a production scenario</span><br />      <span class="nx">livecontainer</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s2">&quot;.fp-message h2&quot;</span><span class="p">).</span><span class="nx">innerHTML</span> <span class="o">=</span><br />          <span class="s2">&quot;Test stream only available as MPEG-DASH&quot;</span><span class="p">;</span><br />      <span class="nx">livecontainer</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s2">&quot;.fp-message p&quot;</span><span class="p">).</span><span class="nx">innerHTML</span> <span class="o">=</span><br />          <span class="s2">&quot;Please try in a different browser&quot;</span><span class="p">;</span><br />    <span class="p">}</span><br />&nbsp;<br />  <span class="p">});</span><br />&nbsp;<br /><span class="p">};</span><br /></pre></div><br /><figcaption>JavaScript</figcaption></figure></div>
+
+
+<h2 id="html-setup">&lt;body/&gt;</h2>
+
+<div class="codebox"><figure class="code"><div class="highlight"><pre><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;dashvod&quot;</span><span class="nt">&gt;&lt;/div&gt;</span><br />&nbsp;<br /><span class="c">&lt;!-- ... --&gt;</span><br />&nbsp;<br /><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;dashlive&quot;</span><span class="nt">&gt;&lt;/div&gt;</span><br /></pre></div><br /><figcaption>HTML</figcaption></figure></div>
+
+
+<script>
+var dashsupported = function () {
+  var canDash = flowplayer.engines.length > 2 && flowplayer.engines[2].canPlay("application/dash+xml"),
+      common = flowplayer.common,
+      dashMsg = common.find(".dash-supported")[0];
+
+  common.html(dashMsg, canDash ? "YES" : "NO");
+  common.css(dashMsg, {color: canDash ? "green" : "red"});
+};
+
+dashsupported();
+</script>
+
+
+
+<div class="footer">
+    <p><a href="index.html">Demos in this section</a></p>
+
+  <hr>
+
+  <p><a href="http://demos.flowplayer.org">Flowplayer Demos+</a></p>
+
+  <hr>
+
+  <p><a href="https://flowplayer.org/demos/" target="_blank">Flowplayer Demos</a></p>
+
+  <hr>
+
+  <p><a href="http://demos.flowplayer.org/v5">Version 5 Demos</a></p>
+</div>
+   </div> <!-- end content -->
+
+</body>
+</html>
