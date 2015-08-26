@@ -1,0 +1,264 @@
+<!doctype html>
+
+<html>
+
+<head>
+   <meta charset="utf-8">
+
+	<title>Flowplayer · MPEG-DASH support - Shaka provider</title>
+
+	<!-- optimize mobile versions -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<!-- The "functional" skin - choose from: "functional.css", "minimalist.css", "playful.css" -->
+	<link rel="stylesheet" href="//releases.flowplayer.org/6.0.3/skin/functional.css">
+
+	<!-- Shaka Player (http://shaka-player-demo.appspot.com/shaka-player.compiled.js) -->
+	<script src="shaka/shaka-player.compiled.js"></script>
+	
+	<!-- Flowplayer library -->
+	<script src="//releases.flowplayer.org/6.0.3/flowplayer.js"></script>
+	<script src="shaka/flowplayer.mpegdash.shaka.js"></script>
+
+	<style>
+		#content {
+			margin: 50px auto;
+			max-width: 982px;
+		}
+		
+		.info {
+			margin-left: 30px;
+		}
+	</style>
+	<script>
+	var playerManager = {
+		nPlayer: 0,
+		reset: function()
+		{
+			flowplayer('#vod' + playerManager.nPlayer).unload();
+			document.getElementById('engine').textContent = '';
+			document.getElementById('vtype').textContent ='';
+			document.getElementById('src').textContent = '';
+			document.getElementById('videoTracks').textContent = '';
+			document.getElementById('vod' + playerManager.nPlayer).remove();
+
+			var pContainer = document.createElement('div');
+			pContainer.id = 'vod' + (++playerManager.nPlayer);
+			document.getElementById('players').appendChild(pContainer);
+		},
+
+		load: function(mpdUrl)
+		{
+			flowplayer('#vod' + playerManager.nPlayer, {
+				embed: false,
+				clip: {
+				  sources: [  
+					{
+						type: "application/dash+xml",
+						src:  mpdUrl,
+						shaka: {
+							onLoad: function()
+							{				
+								// List of available video tracks and active one
+								var playerVideoTracks = this.getVideoTracks(),
+									videoTracks	= {};
+
+								// Add track info to the DOM.
+								var ul = document.getElementById('videoTracks');
+
+								for (var i = 0; i < playerVideoTracks.length; ++i) {
+									var track = playerVideoTracks[i];
+									if (track.active) activeTrack = track;
+
+									var size = track.width + 'x' + track.height,
+										bw =  (track.bandwidth / 1024).toFixed(0),
+										k = size + '@' + bw;
+
+									var li = document.createElement('li');
+									li.id = 'vtrack_' + k;
+									li.textContent = size + ' ' + bw + ' kbits/s';
+									ul.appendChild(li);
+
+									videoTracks[k] = videoTracks[i];
+								}
+
+								// Adaption event
+								this.addEventListener('adaptation', function(adaptation)
+								{								
+									if (adaptation.contentType === 'video')
+									{
+										// Hightlight the playing stream
+										var k = adaptation.size.width + 'x' + adaptation.size.height + '@' + (adaptation.bandwidth / 1024).toFixed(0),
+											lis = document.querySelectorAll('#videoTracks li');
+
+										for(var i = 0; i < lis.length; i++)
+										{
+											lis[i].style.color = 'black';
+
+											if(lis[i].querySelector('span'))
+												lis[i].querySelector('span').remove();
+										}
+
+										var span = document.createElement('span');
+										span.textContent =  ' ►';
+
+										document.getElementById('vtrack_' + k).style.color = 'green';
+										document.getElementById('vtrack_' + k).appendChild(span);
+									}
+								});
+							}
+						}
+					}
+				  ]
+				}
+			}).on('ready', function (e, api, video)
+			{
+				document.getElementById('engine').textContent = api.engine.engineName;
+				document.getElementById('vtype').textContent = video.type;
+				document.getElementById('src').textContent = video.src;
+			});
+		}
+	};
+
+	window.onload = function()
+	{
+		document.getElementById('load').addEventListener('click', function(e)
+		{
+			if( ! document.getElementById('mpd').value)
+				return;
+
+			playerManager.reset();
+
+			playerManager.load(document.getElementById('mpd').value);
+		});
+
+		playerManager.load(document.getElementById('mpd').value);
+	};
+	</script>
+</head>
+
+<body>
+	<div id="content">	  
+		<h1>Flowplayer MPEG-DASH plugin - Shaka Player provider</h1>
+		<div id="players">
+			<div id="vod0"></div>
+		</div>
+		
+		<h3>MPEG-DASH Manifest</h3>
+		<div class="info">
+			<input type="text" value="//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/dash/manifest.mpd" id="mpd" size="100" autocomplete="off"/> <button type="button" id="load">Load</button>
+			<p><b>Notes:</b></p>
+			<div>- Default demo MPD is loaded at page loading.</div>
+			<div>- When using custom MPD, ensure CORS allows the domain.</div>
+		</div>
+
+		<h3>Player info</h3>
+		<div class="info">
+			<p><b>Player engine:</b> <span id="engine"></span></p>
+			<p><b>Video type:</b> <span id="vtype"></span></p>
+			<p><b>Video source:</b> <span id="src"></span></p>
+		</div>
+		
+		<h3>Video streams</h3>
+		<div class="info">
+			<ul id="videoTracks"></ul>
+		</div>
+		
+		<hr/>
+		
+		<h2>Usage</h2>
+		
+		<h3>Basic</h3>
+
+		<div class="info">
+			<p>
+				The plugins depends on <a href="https://github.com/google/shaka-player">Shaka Player</a> so you must require its <a href="http://shaka-player-demo.appspot.com/shaka-player.compiled.js">script</a> first. Next step is to include <a href="http://releases.flowplayer.org/6.0.3/flowplayer.js">Flowplayer</a>  followed by the <a href="http://releases.flowplayer.org/6.0.3/flowplayer.js">plugin</a>:
+			</p>
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #888888">&lt;!-- Shaka Player (http://shaka-player-demo.appspot.com/shaka-player.compiled.js) --&gt;</span>
+<span style="color: #007700">&lt;script </span><span style="color: #0000CC">src=</span><span style="background-color: #fff0f0">&quot;shaka/shaka-player.compiled.js&quot;</span><span style="color: #007700">&gt;&lt;/script&gt;</span>
+<span style="color: #888888">&lt;!-- Flowplayer library --&gt;</span>
+<span style="color: #007700">&lt;script </span><span style="color: #0000CC">src=</span><span style="background-color: #fff0f0">&quot;//releases.flowplayer.org/6.0.3/flowplayer.js&quot;</span><span style="color: #007700">&gt;&lt;/script&gt;</span>
+<span style="color: #007700">&lt;script </span><span style="color: #0000CC">src=</span><span style="background-color: #fff0f0">&quot;flowplayer.mpegdash.shaka.js&quot;</span><span style="color: #007700">&gt;&lt;/script&gt;</span>
+</pre></div>
+		<p>
+			Then, similarly to the <a href="http://demos.flowplayer.org/api/dash.html">official MPEG-DASH plugin (DASH.js provider)</a>, you can reference <b>MPEG-DASH Manifest files</b> as sources for the player:
+		</p>
+		
+<!-- HTML generated using hilite.me --><div style="background: #111111; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #ffffff">clip:</span> <span style="color: #ffffff">{</span>
+      <span style="color: #ffffff">sources:</span> <span style="color: #ffffff">[</span>
+        <span style="color: #ffffff">{</span> 
+            <span style="color: #ffffff">type:</span> <span style="color: #fb660a; font-weight: bold">&quot;application/dash+xml&quot;</span><span style="color: #ffffff">,</span>
+            <span style="color: #ffffff">src:</span>  <span style="color: #fb660a; font-weight: bold">&quot;//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/dash/manifest.mpd&quot;</span>
+        <span style="color: #ffffff">},</span>
+        <span style="color: #ffffff">{</span> 
+            <span style="color: #ffffff">type:</span> <span style="color: #fb660a; font-weight: bold">&quot;application/x-mpegurl&quot;</span><span style="color: #ffffff">,</span>
+            <span style="color: #ffffff">src:</span>  <span style="color: #fb660a; font-weight: bold">&quot;//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/hls/multi_bitrate_playlist.m3u8&quot;</span>
+        <span style="color: #ffffff">},</span>
+        <span style="color: #ffffff">{</span> 
+            <span style="color: #ffffff">type:</span> <span style="color: #fb660a; font-weight: bold">&quot;video/mp4&quot;</span><span style="color: #ffffff">,</span>
+            <span style="color: #ffffff">src:</span>  <span style="color: #fb660a; font-weight: bold">&quot;//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/mp4/500.mp4&quot;</span>
+        <span style="color: #ffffff">},</span>
+        <span style="color: #ffffff">{</span> 
+            <span style="color: #ffffff">type:</span> <span style="color: #fb660a; font-weight: bold">&quot;video/webm&quot;</span><span style="color: #ffffff">,</span>
+            <span style="color: #ffffff">src:</span>  <span style="color: #fb660a; font-weight: bold">&quot;//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/webm/500.webm&quot;</span>
+        <span style="color: #ffffff">}</span>
+    <span style="color: #ffffff">]</span>
+<span style="color: #ffffff">}</span>
+</pre></div>
+
+		</div>
+		
+		<h3>Advanced</h3>
+
+		<div class="info">
+			<p>
+				The below example shows advanced usage including how to interact with the Shaka Player engine.
+			</p>
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">flowplayer(<span style="background-color: #fff0f0">&#39;#vod&#39;</span>, {
+    embed<span style="color: #333333">:</span> <span style="color: #008800; font-weight: bold">false</span>,
+    clip<span style="color: #333333">:</span> {
+      sources<span style="color: #333333">:</span> [  
+        {
+            type<span style="color: #333333">:</span> <span style="background-color: #fff0f0">&quot;application/dash+xml&quot;</span>,
+            src<span style="color: #333333">:</span>  <span style="background-color: #fff0f0">&quot;//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/dash/manifest.mpd&quot;</span>,
+            
+            shaka<span style="color: #333333">:</span> {
+                <span style="color: #888888">// Called when the player has loaded the manifest.</span>
+                onLoad<span style="color: #333333">:</span> <span style="color: #008800; font-weight: bold">function</span>() {				
+                    <span style="color: #888888">// &quot;this&quot; refers to the Shaka Player instance.</span>
+                    
+                    <span style="color: #888888">// Available video tracks</span>
+                    console.log( <span style="color: #008800; font-weight: bold">this</span>.getVideoTracks() );
+
+                    <span style="color: #888888">// Subscribe to Adaptation events</span>
+                    <span style="color: #888888">// Ref: http://shaka-player-demo.appspot.com/docs/shaka.media.Stream.html#event:AdaptationEvent</span>
+                    <span style="color: #008800; font-weight: bold">this</span>.addEventListener(<span style="background-color: #fff0f0">&#39;adaptation&#39;</span>, <span style="color: #008800; font-weight: bold">function</span>(adaptation) {								
+                        console.log( adaptation );
+                    });
+                },
+                
+                <span style="color: #888888">// Callback to interpret app-specific DASH ContentProtection elements. </span>
+                <span style="color: #888888">// Ref: http://shaka-player-demo.appspot.com/docs/shaka.player.DashVideoSource.html#ContentProtectionCallback</span>
+                <span style="color: #888888">// Ref: https://github.com/google/shaka-player/blob/master/tutorials/sample4.txt</span>
+                contentProtectionCallback<span style="color: #333333">:</span> <span style="color: #008800; font-weight: bold">function</span>() {
+                
+                },
+                
+                <span style="color: #888888">// Custom bandwidth estimator, must implement http://shaka-player-demo.appspot.com/docs/shaka.util.IBandwidthEstimator.html</span>
+                <span style="color: #888888">// Default to new shaka.util.EWMABandwidthEstimator()</span>
+                bandwidthEstimator<span style="color: #333333">:</span> <span style="color: #008800; font-weight: bold">function</span>() {
+                
+                }
+            }
+        }
+      ]
+    }
+})
+</pre></div>
+
+		</div>
+		
+		<a href="https://github.com/you"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/652c5b9acfaddf3a9c326fa6bde407b87f7be0f4/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6f72616e67655f6666373630302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png"></a>
+   </div>
+</body>
+</html>
