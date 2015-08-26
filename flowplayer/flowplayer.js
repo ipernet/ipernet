@@ -3154,7 +3154,8 @@ function initializePlayer(element, opts, callback) {
          rtl: isRTL,
 
          // methods
-         init: function(video) {
+         load: function(video, callback) {
+
             if (api.error || api.loading) return;
             api.video = {};
 
@@ -3175,27 +3176,11 @@ function initializePlayer(element, opts, callback) {
                 api.conf.autoplay = true;
               }
               engine = api.engine = engineImpl(api, root);
-			  
-              extend(video, engine.pick(video.sources.filter(function(source) { // Filter out sources explicitely configured for some other engine
-                if (!source.engine) return true;
-                return source.engine === engine.engineName;
-              })));
-
-			  if (typeof engine.init === 'function') engine.init(video);
               api.one('ready', function() {
                 engine.volume(api.volumeLevel);
               });
             }
 
-            return api;
-         },
-
-         load: function(video, callback) {			
-            video = video || conf.clip;
-
-            // resolve URL
-            video = extend({}, urlResolver.resolve(video, conf.clip.sources));
-			
             extend(video, engine.pick(video.sources.filter(function(source) { // Filter out sources explicitely configured for some other engine
               if (!source.engine) return true;
               return source.engine === engine.engineName;
@@ -3421,9 +3406,6 @@ function initializePlayer(element, opts, callback) {
             // instances
             instances.push(api);
 
-            // Init API engine
-            api.init();
-			
             // start
             if (conf.splash) api.unload(); else api.load();
 
