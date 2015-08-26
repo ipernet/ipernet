@@ -121,7 +121,7 @@
                         mediaPlayer.attachSource(video.src);
                         
                         if (autoPlay) {
-                            mediaPlayer.play();
+                            videoTag.play();
                         }
 
                         player.on("beforeseek", function () {
