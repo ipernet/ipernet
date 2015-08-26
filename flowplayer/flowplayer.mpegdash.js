@@ -120,8 +120,8 @@
                         mediaPlayer.attachView(videoTag);
                         mediaPlayer.attachSource(video.src);
 
-                        if (autoPlay) {
-                            videoTag.play();
+                        if (!flowplayer.support.zeropreload && api.conf.autoplay) {
+                          videoTag.load(); // similar to iPad
                         }
 
                         player.on("beforeseek", function () {
