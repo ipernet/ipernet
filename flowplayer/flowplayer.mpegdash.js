@@ -22,6 +22,7 @@
         clientSupport = flowplayer.support.video &&
                 win.MediaSource &&
                 win.MediaSource.isTypeSupported('video/mp4; codecs="avc1.640029, mp4a.40.5"'),
+                apiConf,
 
         engineImpl = function mpegdashEngine(player, root) {
             var bean = flowplayer.bean,
@@ -120,7 +121,7 @@
                         mediaPlayer.attachView(videoTag);
                         mediaPlayer.attachSource(video.src);
 
-                        if (!flowplayer.support.zeropreload && api.conf.autoplay) {
+                        if (!flowplayer.support.zeropreload && apiConf.autoplay) {
                           videoTag.load(); // similar to iPad
                         }
 
@@ -166,7 +167,8 @@
 
 
     engineImpl.engineName = 'mpegdash';
-    engineImpl.canPlay = function (type) {
+    engineImpl.canPlay = function (type, conf) {
+        apiConf = conf;
         return type == "application/dash+xml";
     };
     // only load engine if it can be used
