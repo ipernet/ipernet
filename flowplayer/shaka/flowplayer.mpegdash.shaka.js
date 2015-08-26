@@ -34,7 +34,6 @@
                 _initVideo =  function(video)
                 {
                     videoTag = common.createElement("video");
-                    videoTag.autoplay = player.conf.autoplay;
                     
                     bean.on(videoTag, "play", function () {
                         if (preventDashResume) {
@@ -148,8 +147,12 @@
                             shakaPlayer.load(source);
                         }
                         
-                        if ( !flowplayer.support.zeropreload && player.conf.autoplay) {
-                          videoTag.load(); // similar to iPad
+                        if (player.conf.autoplay) {
+                          if( !flowplayer.support.zeropreload) {
+                            videoTag.load(); // similar to iPad
+                          } else {
+                            videoTag.play(); // Firefox
+                          }
                         }
                     },
 
