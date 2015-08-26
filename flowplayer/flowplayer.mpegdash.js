@@ -29,6 +29,7 @@
                 mediaPlayer,
                 videoTag,
                 preventDashResume = false,
+                autoPlay = player.conf.autoplay || player.conf.splash,
                 context = new Dash.di.DashContext(),
 
                 engine = {
@@ -49,7 +50,6 @@
                     load: function (video) {
                         common.removeNode(common.findDirect("video", root)[0] || common.find(".fp-player > video", root)[0]);
                         videoTag = common.createElement("video");
-                        videoTag.autoplay = true;
 
                         bean.on(videoTag, "play", function () {
                             if (preventDashResume) {
@@ -114,14 +114,16 @@
                         common.prepend(common.find(".fp-player", root)[0], videoTag);
 
                         mediaPlayer = new MediaPlayer(context);
-                        mediaPlayer.setAutoPlay(true);
+                        mediaPlayer.setAutoPlay(autoPlay);
                         mediaPlayer.setScheduleWhilePaused(true);
                         mediaPlayer.startup();
                         mediaPlayer.attachView(videoTag);
                         mediaPlayer.attachSource(video.src);
-                        videoTag.play();
-                        mediaPlayer.play();
                         
+                        if (autoPlay) {
+                            mediaPlayer.play();
+                        }
+
                         player.on("beforeseek", function () {
                             preventDashResume = player.conf.autoplay && player.paused;
                         });
