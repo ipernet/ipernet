@@ -108,9 +108,21 @@
 								});
 							}
 						}
-					}
+					},
+                    { 
+                        type: "application/x-mpegurl",
+                        src:  "//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/hls/multi_bitrate_playlist.m3u8"
+                    },
+                    { 
+                        type: "video/mp4",
+                        src:  "//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/mp4/500.mp4"
+                    },
+                    { 
+                        type: "video/webm",
+                        src:  "//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/webm/500.webm"
+                    }
 				  ]
-				}
+                }
 			}).on('ready', function (e, api, video)
 			{
 				document.getElementById('engine').textContent = api.engine.engineName;
