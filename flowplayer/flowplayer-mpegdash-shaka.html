@@ -160,8 +160,16 @@
 		<div class="info">
 			<input type="text" value="//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/dash/manifest.mpd" id="mpd" size="100" autocomplete="off"/> <button type="button" id="load">Load</button>
 			<p><b>Notes:</b></p>
-			<div>- Default demo MPD is loaded at page loading.</div>
-			<div>- When using custom MPD, ensure CORS allows the domain.</div>
+			<div>- When using custom MPD, ensure correct CORS directives.</div>
+            <div>- Default demo MPD is loaded at page loading and contains the following streams:</div>
+            <div class="info">
+                <ul>
+                    <li><b>Video 1:</b> MP4 / H264. <pre>500k@640x272, 1000k@960x408, 1500k@1280x546, 2500k@1280x546, 3000k@1920x1080, 3500k@1920x1080</pre></li>
+                    <li><b>Video 2:</b> WEBM / VP9. <pre>500k@640x272, 1000k@960x408, 1500k@1280x546, 2500k@1280x546, 3000k@1920x1080, 3500k@1920x1080</pre></li>
+                    <li><b>Audio 1:</b> MP4 / AAC (128k).</li>
+                    <li><b>Audio 2:</b> WEBM / VORBIS(128k).</li>
+                </ul>
+            </div>
 		</div>
 
 		<h3>Player info</h3>
