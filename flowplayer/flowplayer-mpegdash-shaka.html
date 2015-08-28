@@ -169,7 +169,7 @@
             var xhr = new XMLHttpRequest(),
                 start = new Date().getTime();
                 
-            xhr.open('GET', '//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/512.bin?_=' + start, true);
+            xhr.open('GET', '//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/500.bin?_=' + start, true);
             xhr.onload = function() {
                 var bw = Math.floor(500 * 1000 / (new Date().getTime() - start));
                 playerManager.load(document.getElementById('mpd').value, bw);
