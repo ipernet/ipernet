@@ -1,0 +1,30 @@
+#!/bin/bash
+
+VP9_DASH_PARAMS="-tile-columns 4 -frame-parallel 1"
+
+ffmpeg -i Sintel.2010.1080p.mkv -c:v libvpx-vp9 -s 640x272 -b:v 290k -keyint_min 150 -g 150 ${VP9_DASH_PARAMS} -threads 0 -an -f webm -dash 1 dash_640x272_500k.webm
+
+ffmpeg -i Sintel.2010.1080p.mkv -c:v libvpx-vp9 -s 960x408 -b:v 695k -keyint_min 150 -g 150 ${VP9_DASH_PARAMS} -threads 0 -an -f webm -dash 1 dash_960x408_1000k.webm
+
+ffmpeg -i Sintel.2010.1080p.mkv -c:v libvpx-vp9 -s 1280x546 -b:v 1100k -keyint_min 150 -g 150 ${VP9_DASH_PARAMS} -threads 0 -an -f webm -dash 1 dash_1280x546_1500k.webm
+
+ffmpeg -i Sintel.2010.1080p.mkv -c:v libvpx-vp9 -s 1280x546 -b:v 1909k -keyint_min 150 -g 150 ${VP9_DASH_PARAMS} -threads 0 -an -f webm -dash 1 dash_1280x546_2500k.webm
+
+ffmpeg -i Sintel.2010.1080p.mkv -c:v libvpx-vp9 -s 1920x818 -b:v 2314k -keyint_min 150 -g 150 ${VP9_DASH_PARAMS} -threads 0 -an -f webm -dash 1 dash_1920x818_3000k.webm
+
+ffmpeg -i Sintel.2010.1080p.mkv -c:v libvpx-vp9 -s 1920x818 -b:v 2720k -keyint_min 150 -g 150 ${VP9_DASH_PARAMS} -threads 0 -an -f webm -dash 1 dash_1920x818_3500k.webm
+
+ffmpeg -i Sintel.2010.1080p.mkv -c:a libvorbis -b:a 128k -threads 0 -vn -f webm -dash 1 audio_128k.webm
+
+ffmpeg \
+ -f webm_dash_manifest -i dash_640x272_500k.webm \
+ -f webm_dash_manifest -i dash_960x408_1000k.webm \
+ -f webm_dash_manifest -i dash_1280x546_1500k.webm \
+ -f webm_dash_manifest -i dash_1280x546_2500k.webm \
+ -f webm_dash_manifest -i dash_1920x818_3000k.webm \
+ -f webm_dash_manifest -i dash_1920x818_3500k.webm \
+ -f webm_dash_manifest -i audio_128k.webm \
+ -c copy -map 0 -map 1 -map 2 -map 3 -map 4 -map 5 -map 6 \
+ -f webm_dash_manifest \
+ -adaptation_sets "id=0,streams=0,1,2,3,4,5 id=1,streams=6" \
+ manifest.mpd
