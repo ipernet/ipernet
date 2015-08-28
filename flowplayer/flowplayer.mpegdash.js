@@ -119,14 +119,10 @@
                         mediaPlayer.attachView(videoTag);
                         mediaPlayer.attachSource(video.src);
 
-                        // Android requires extra load, like iPad
-                        // https://github.com/flowplayer/flowplayer/issues/910
                         if (player.conf.autoplay) {
-                          if( !flowplayer.support.zeropreload) {
-                            videoTag.load(); // similar to iPad
-                          } else if (player.conf.splash){
-                            videoTag.play(); // Force playback for Firefox
-                          }
+                            // https://github.com/flowplayer/flowplayer/issues/910
+                            // Android and Win Firefox
+                            videoTag.play();
                         }
 
                         player.on("beforeseek", function () {
@@ -176,7 +172,7 @@
     };
     // only load engine if it can be used
     if (clientSupport) {
-        flowplayer.engines.push(engineImpl);
+        flowplayer.engines.unshift(engineImpl);
     }
 
 }());
