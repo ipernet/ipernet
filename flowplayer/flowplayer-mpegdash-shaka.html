@@ -47,81 +47,100 @@
 			document.getElementById('players').appendChild(pContainer);
 		},
 
-		load: function(mpdUrl)
+		load: function(mpdUrl, bw)
 		{
 			flowplayer('#vod' + playerManager.nPlayer, {
 				embed: false,
 				clip: {
-				  sources: [  
-					{
-						type: "application/dash+xml",
-						src:  mpdUrl,
-						shaka: {
-							onLoad: function()
-							{				
-								// List of available video tracks and active one
-								var playerVideoTracks = this.getVideoTracks(),
-									videoTracks	= {};
+				  sources: (function(){
+                    var sources = [
+                        {
+                            type: "application/dash+xml",
+                            src:  mpdUrl,
+                            shaka: {
+                                onLoad: function()
+                                {				
+                                    // List of available video tracks and active one
+                                    var playerVideoTracks = this.getVideoTracks(),
+                                        videoTracks	= {};
 
-								// Add track info to the DOM.
-								var ul = document.getElementById('videoTracks');
+                                    // Add track info to the DOM.
+                                    var ul = document.getElementById('videoTracks');
 
-								for (var i = 0; i < playerVideoTracks.length; ++i) {
-									var track = playerVideoTracks[i];
-									if (track.active) activeTrack = track;
+                                    for (var i = 0; i < playerVideoTracks.length; ++i) {
+                                        var track = playerVideoTracks[i];
+                                        if (track.active) activeTrack = track;
 
-									var size = track.width + 'x' + track.height,
-										bw =  (track.bandwidth / 1024).toFixed(0),
-										k = size + '@' + bw;
+                                        var size = track.width + 'x' + track.height,
+                                            bw =  (track.bandwidth / 1024).toFixed(0),
+                                            k = size + '@' + bw;
 
-									var li = document.createElement('li');
-									li.id = 'vtrack_' + k;
-									li.textContent = size + ' ' + bw + ' kbits/s';
-									ul.appendChild(li);
+                                        var li = document.createElement('li');
+                                        li.id = 'vtrack_' + k;
+                                        li.textContent = size + ' ' + bw + ' kbits/s';
+                                        ul.appendChild(li);
 
-									videoTracks[k] = videoTracks[i];
-								}
+                                        videoTracks[k] = videoTracks[i];
+                                    }
 
-								// Adaption event
-								this.addEventListener('adaptation', function(adaptation)
-								{								
-									if (adaptation.contentType === 'video')
-									{
-										// Hightlight the playing stream
-										var k = adaptation.size.width + 'x' + adaptation.size.height + '@' + (adaptation.bandwidth / 1024).toFixed(0),
-											lis = document.querySelectorAll('#videoTracks li');
+                                    // Adaption event
+                                    this.addEventListener('adaptation', function(adaptation)
+                                    {								
+                                        if (adaptation.contentType === 'video')
+                                        {
+                                            // Hightlight the playing stream
+                                            var k = adaptation.size.width + 'x' + adaptation.size.height + '@' + (adaptation.bandwidth / 1024).toFixed(0),
+                                                lis = document.querySelectorAll('#videoTracks li');
 
-										for(var i = 0; i < lis.length; i++)
-										{
-											lis[i].style.color = 'black';
+                                            for(var i = 0; i < lis.length; i++)
+                                            {
+                                                lis[i].style.color = 'black';
 
-											if(lis[i].querySelector('span'))
-												lis[i].querySelector('span').remove();
-										}
+                                                if(lis[i].querySelector('span'))
+                                                    lis[i].querySelector('span').remove();
+                                            }
 
-										var span = document.createElement('span');
-										span.textContent =  ' ►';
+                                            var span = document.createElement('span');
+                                            span.textContent =  ' ►';
 
-										document.getElementById('vtrack_' + k).style.color = 'green';
-										document.getElementById('vtrack_' + k).appendChild(span);
-									}
-								});
-							}
-						}
-					},
-                    { 
-                        type: "application/x-mpegurl",
-                        src:  "//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/hls/multi_bitrate_playlist.m3u8"
-                    },
+                                            document.getElementById('vtrack_' + k).style.color = 'green';
+                                            document.getElementById('vtrack_' + k).appendChild(span);
+                                        }
+                                    });
+                                }
+                            }
+                        },
+                        { 
+                            type: "application/x-mpegurl",
+                            src:  "//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/hls/multi_bitrate_playlist.m3u8"
+                        }
+                    ];
+                    
+                   bw = bw || 0;
+                   var br;
+                   
+                   switch(true) {
+                        case bw >= 437: br = 3500; break;
+                        case bw >= 375: br = 3000; break;
+                        case bw >= 312: br = 2500; break;
+                        case bw >= 187: br = 1500; break;
+                        case bw >= 125: br = 1000; break;
+                        default: br = 500;
+                   }
+                   
+                   sources.push({
                     { 
                         type: "video/mp4",
-                        src:  "//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/mp4/500.mp4"
+                        src:  "//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/mp4/" + br + ".mp4"
                     },
                     { 
                         type: "video/webm",
-                        src:  "//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/webm/500.webm"
-                    }
-				  ]
+                        src:  "//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/webm/" + br + ".webm"
+                    }});
+                    
+                    
+                    return sources;
+                  })()
                 }
 			}).on('ready', function (e, api, video)
 			{
@@ -144,7 +163,26 @@
 			playerManager.load(document.getElementById('mpd').value);
 		});
 
-		playerManager.load(document.getElementById('mpd').value);
+        // A try to select a more accurate basic html5 playback based on available client bw.
+        var streamingCapability = flowplayer.support.video && (!!window.MediaSource || flowplayer.support.flashVideo);
+
+        if( ! streamingCapability) {
+            var xhr = new XMLHttpRequest(),
+                start = new Date().getTime();
+                
+            xhr.open('GET', '//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/512.bin?_=' + start, true);
+            xhr.onload = function() {
+                var bw = Math.floor(500 * 1000 / (new Date().getTime() - start));
+                playerManager.load(document.getElementById('mpd').value, bw);
+            };
+            xhr.onerror = function() {
+                playerManager.load(document.getElementById('mpd').value);
+            };
+            
+            xhr.send();
+        } else {
+            playerManager.load(document.getElementById('mpd').value);
+        }
 	};
 	</script>
 </head>
