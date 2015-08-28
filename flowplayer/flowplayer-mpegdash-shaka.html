@@ -120,11 +120,11 @@
                     var br;
 
                     switch(true) {
-                        case bw >= 437: br = 3500; break;
-                        case bw >= 375: br = 3000; break;
-                        case bw >= 312: br = 2500; break;
-                        case bw >= 187: br = 1500; break;
-                        case bw >= 125: br = 1000; break;
+                        case bw >= 3500: br = 3500; break;
+                        case bw >= 3000: br = 3000; break;
+                        case bw >= 2500: br = 2500; break;
+                        case bw >= 1500: br = 1500; break;
+                        case bw >= 1000: br = 1000; break;
                         default: br = 500;
                     }
                    
@@ -171,7 +171,7 @@
                 
             xhr.open('GET', '//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/500.bin?_=' + start, true);
             xhr.onload = function() {
-                var bw = Math.floor(500 * 1000 / (new Date().getTime() - start));
+                var bw = Math.floor(500 * 1024 * 1000 / (new Date().getTime() - start));
                 playerManager.load(document.getElementById('mpd').value, bw);
             };
             xhr.onerror = function() {
