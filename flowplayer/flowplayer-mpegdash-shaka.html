@@ -141,7 +141,7 @@
                         src:  "//s3-eu-west-1.amazonaws.com/krds-mpegdash/sintel/webm/" + br + ".webm"
                     });                    
                     
-                    document.getElementById('vod0').textContent = '';
+                    document.getElementById('vod' + playerManager.nPlayer).textContent = '';
                     
                     return sources;
                   })()
